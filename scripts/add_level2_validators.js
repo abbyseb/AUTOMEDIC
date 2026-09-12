@@ -23,7 +23,9 @@ async function api(method, p, body) {
 }
 
 const validateCode = `const email = String($json.customerEmail || '');
+const account = String($json.accountName || '');
 const amount = Number($json.dealAmount ?? $json.amount);
+const segment = String($json.segment || '');
 const emailOk = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);
 if (!emailOk) {
   throw new Error(
@@ -33,8 +35,18 @@ if (!emailOk) {
       Object.keys($json).join(', ')
   );
 }
+if (!account.trim()) {
+  throw new Error(
+    "SHAPE_VIOLATION: accountName must be a non-empty string. Got: " +
+      JSON.stringify($json.accountName) +
+      ". Prefer source keys: account_name."
+  );
+}
 if (!(amount > 0)) {
   throw new Error('SHAPE_VIOLATION: dealAmount must be a positive number. Got: ' + String($json.dealAmount));
+}
+if (!['B2B', 'B2C', 'SMB'].includes(segment)) {
+  throw new Error('SHAPE_VIOLATION: segment must be one of B2B|B2C|SMB. Got: ' + JSON.stringify(segment));
 }
 return { json: { ...$json, shapeValidated: true } };`;
 
