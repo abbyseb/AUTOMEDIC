@@ -60,7 +60,7 @@ High confidence. Zero mutation. Respect.
 
 Silent IF drift? We **audit**, we don’t guess.  
 Wrong shape in the CRM map? We **hard-fail** before you poison Salesforce.  
-Semantic misuse? We **propose** — we don’t auto-hallucinate meaning.
+Semantic misuse? We **propose** and escalate — then **Approve & patch (HITL)** when a human signs off.
 
 ### One-liner to land it
 

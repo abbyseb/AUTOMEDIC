@@ -15,6 +15,7 @@ Header: `X-AutoMedic-Secret: automedic-demo-secret`
 | `POST` | `/automedic/reset` | — | Restore victim, seed AUTH |
 | `POST` | `/automedic/audit` | 1 | Silent dangling refs (no auto-patch) |
 | `POST` | `/automedic/semantic` | 3 | Role/shape critic; propose, escalate |
+| `POST` | `/automedic/scenario` | 1–3 | Body `{ "scenario": "l1"\|"l2"\|"l3" }` — plant + run (+ audit / semantic) |
 
 See [semantic-levels.md](./semantic-levels.md).
 
@@ -35,7 +36,7 @@ Step-by-step Do / Expect: **[demo-runbook.md](./demo-runbook.md)**
 | 0 | — | Reset → healthy (clears incidents; no AUTH seed) |
 | 1 | 0 | Break → Scan → heal + verify |
 | 1b | 0 refuse | **Auth Break** → Scan → AUTH_EXPIRED, no mutation; **Reset** removes probe |
-| 2 | 1 | `Is B2B?` → `$json.is_c2c` → `/revenue-ops` (200) → `/automedic/audit` (drift, no patch) |
-| 3 | 2 | Reset → Map `customerEmail` → `$json.account_name` → `/revenue-ops` → `SHAPE_VIOLATION` |
-| 4 | 3 | `/automedic/semantic` → proposals + escalate, no auto-PUT → Reset |
+| 2 | 1 | **L1 · Simulate silent drift** → audit escalate |
+| 3 | 2 | **L2 · Simulate shape fail** → SHAPE_VIOLATION |
+| 4 | 3 | **L3 · Simulate semantic + HITL** → Approve & patch |
 

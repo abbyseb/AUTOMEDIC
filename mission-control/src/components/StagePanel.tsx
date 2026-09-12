@@ -9,9 +9,21 @@ type Props = {
   patientGraph?: PatientGraph | null
   loading: boolean
   loadError: string | null
+  mutating?: boolean
+  onHitlPatch?: (incidentId: string) => void
+  onHitlIgnore?: (incidentId: string) => void
 }
 
-export function StagePanel({ incident, workflows, patientGraph, loading, loadError }: Props) {
+export function StagePanel({
+  incident,
+  workflows,
+  patientGraph,
+  loading,
+  loadError,
+  mutating,
+  onHitlPatch,
+  onHitlIgnore,
+}: Props) {
   if (loading) {
     return <p className="font-mono text-[12px] text-[var(--ink-3)]">Loading state…</p>
   }
@@ -32,7 +44,12 @@ export function StagePanel({ incident, workflows, patientGraph, loading, loadErr
   if (isEscalatedIncident(incident)) {
     return (
       <div>
-        <EscalateStage incident={incident} />
+        <EscalateStage
+          incident={incident}
+          mutating={mutating}
+          onHitlPatch={onHitlPatch}
+          onHitlIgnore={onHitlIgnore}
+        />
         {preview}
       </div>
     )
@@ -83,8 +100,41 @@ function IdleStage({ workflows }: { workflows: WatchedWorkflow[] }) {
   )
 }
 
-function EscalateStage({ incident }: { incident: Incident }) {
+function EscalateStage({
+  incident,
+  mutating,
+  onHitlPatch,
+  onHitlIgnore,
+}: {
+  incident: Incident
+  mutating?: boolean
+  onHitlPatch?: (incidentId: string) => void
+  onHitlIgnore?: (incidentId: string) => void
+}) {
   const ft = incident.diagnosis?.failureType ?? 'UNKNOWN'
+  const suggestions = incident.suggestions ?? []
+  const hitlReady =
+    (ft === 'SEMANTIC_MISMATCH' || ft === 'SILENT_DRIFT') &&
+    (suggestions.length > 0 ||
+      (!!incident.diagnosis?.sourceField && !!incident.diagnosis?.targetField)) &&
+    typeof onHitlPatch === 'function'
+  const canIgnore =
+    (ft === 'SEMANTIC_MISMATCH' || ft === 'SILENT_DRIFT') && typeof onHitlIgnore === 'function'
+  const reasonLabel = ft === 'SILENT_DRIFT' ? 'Audit reason' : 'OpenAI reason'
+
+  const displaySuggestions =
+    suggestions.length > 0
+      ? suggestions
+      : incident.diagnosis?.sourceField && incident.diagnosis?.targetField
+        ? [
+            {
+              mappedField: ft === 'SILENT_DRIFT' ? 'expression' : 'customerEmail',
+              expectedField: incident.diagnosis.sourceField,
+              replacementField: incident.diagnosis.targetField,
+            },
+          ]
+        : []
+
   return (
     <div>
       <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--sig-hold)]">
@@ -107,16 +157,68 @@ function EscalateStage({ incident }: { incident: Incident }) {
       {incident.diagnosis?.reason && (
         <div className="mt-4 max-w-xl">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
-            OpenAI reason
+            {reasonLabel}
           </p>
           <p className="mt-2 text-[14px] leading-relaxed text-[var(--ink-2)]">
             {incident.diagnosis.reason}
           </p>
         </div>
       )}
+
+      {displaySuggestions.length > 0 && (
+        <div className="mt-6 max-w-xl border border-[var(--rule)] bg-[var(--plate)] px-4 py-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+            HITL proposals
+          </p>
+          <ul className="mt-2 space-y-1.5 font-mono text-[12px] text-[var(--ink)]">
+            {displaySuggestions.map((s, i) => (
+              <li key={`${s.mappedField}-${s.replacementField}-${i}`}>
+                {s.mappedField !== 'expression' && (
+                  <>
+                    <span className="text-[var(--ink-2)]">{s.mappedField}</span>
+                    {' ← '}
+                  </>
+                )}
+                <span className="text-[var(--sig-fault)]">
+                  {s.expectedField ? `$json.${s.expectedField}` : 'wrong source'}
+                </span>
+                {' → '}
+                <span className="text-[var(--sig-ok)]">$json.{s.replacementField}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <p className="mt-8 border border-[var(--sig-hold)] bg-[color-mix(in_srgb,var(--sig-hold)_12%,var(--plate))] px-4 py-3 font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--sig-hold)]">
         No workflow mutation performed
       </p>
+
+      {(hitlReady || canIgnore) && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {hitlReady && (
+            <button
+              type="button"
+              disabled={mutating}
+              onClick={() => onHitlPatch?.(incident.id)}
+              className="border border-[var(--ink)] bg-[var(--ink)] px-4 py-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[var(--plate)] disabled:opacity-50"
+            >
+              {mutating ? 'Working…' : 'Patch'}
+            </button>
+          )}
+          {canIgnore && (
+            <button
+              type="button"
+              disabled={mutating}
+              onClick={() => onHitlIgnore?.(incident.id)}
+              className="border border-[var(--rule)] bg-transparent px-4 py-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-2)] hover:border-[var(--ink)] hover:text-[var(--ink)] disabled:opacity-50"
+            >
+              Ignore
+            </button>
+          )}
+        </div>
+      )}
+
       {incident.id.includes('seed') && (
         <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--ink-3)]">
           Seeded demo incident
@@ -197,13 +299,17 @@ function HealStage({ incident }: { incident: Incident }) {
 
       {verify?.status === 'success' && (
         <p className="mt-6 font-mono text-[13px] font-medium text-[var(--sig-ok)]">
-          exec {verify.newExecutionId ?? '—'} · success
+          {verify.newExecutionId
+            ? `exec ${verify.newExecutionId} · success`
+            : 'verify · success'}
           {verify.durationMs != null ? ` · ${(verify.durationMs / 1000).toFixed(1)}s` : ''}
         </p>
       )}
       {verify?.status === 'error' && (
         <p className="mt-6 font-mono text-[13px] font-medium text-[var(--sig-fault)]">
-          verify failed · exec {verify.newExecutionId ?? '—'}
+          {verify.newExecutionId
+            ? `verify failed · exec ${verify.newExecutionId}`
+            : 'verify failed'}
         </p>
       )}
     </div>

@@ -81,15 +81,16 @@ Victim (no secret): `POST http://127.0.0.1:5678/webhook/revenue-ops` with `{}`.
 
 ---
 
-### Beat 4 — Level 3 semantic propose (no auto-PUT)
+### Beat 4 — Level 3 semantic propose + HITL patch
 
 | Step | Do | Expect |
 |------|----|--------|
 | 4a | Leave the bad `account_name` map from Beat 3 | Same victim state |
-| 4b | `POST /automedic/semantic` + secret | `escalated:true`, `healed:false`, suggestions e.g. `customerEmail→email_address`, LLM `reason`; **no** workflow PUT |
-| 4c | **Reset** when done | Healthy Map; incidents cleared |
+| 4b | `POST /automedic/semantic` + secret | `escalated:true`, suggestions e.g. `customerEmail→email_address`; **no** auto-PUT yet |
+| 4c | Mission Control **Approve & patch (HITL)** | Applies Map remaps, verifies, incident verified |
+| 4d | **Reset** when fully done | Healthy baseline |
 
-**Say:** *“When the key exists but means the wrong thing, we propose and escalate — we don’t auto-patch semantics in v1.”*
+**Say:** *“Semantics need a human. We propose; you approve; then we patch.”*
 
 ---
 
@@ -106,6 +107,7 @@ curl -sS -X POST "$BASE/automedic/scan" "${H[@]}"
 curl -sS -X POST "$BASE/revenue-ops" -H 'Content-Type: application/json' -d '{}'
 curl -sS -X POST "$BASE/automedic/audit" "${H[@]}"
 curl -sS -X POST "$BASE/automedic/semantic" "${H[@]}"
+curl -sS -X POST "$BASE/automedic/hitl-patch" "${H[@]}" -H 'Content-Type: application/json' -d '{}'
 curl -sS "$BASE/automedic/state" "${H[@]}"
 ```
 

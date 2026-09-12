@@ -17,6 +17,8 @@ export type FailureType =
   | "RATE_LIMIT"
   | "TIMEOUT"
   | "API_ERROR"
+  | "SEMANTIC_MISMATCH"
+  | "SILENT_DRIFT"
   | "UNKNOWN";
 
 export type IncidentStatus =
@@ -136,6 +138,13 @@ export interface TimelineEvent {
   durationMs: number | null;
 }
 
+export interface RemapSuggestion {
+  mappedField: string;
+  expectedField?: string;
+  replacementField: string;
+  kind?: string;
+}
+
 export interface Incident {
   id: string;
   executionId: string;
@@ -151,6 +160,8 @@ export interface Incident {
   patch: Patch | null;
   verify: Verify | null;
   timeline: TimelineEvent[];
+  /** Level 3 / HITL proposals — human must approve before patch. */
+  suggestions?: RemapSuggestion[];
 }
 
 /** Response body for GET /automedic/state */

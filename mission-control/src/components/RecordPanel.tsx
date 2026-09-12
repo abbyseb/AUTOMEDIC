@@ -22,6 +22,9 @@ type Props = {
   onReset: () => void
   onBreak: () => void
   onBreakAuth: () => void
+  onScenarioL1: () => void
+  onScenarioL2: () => void
+  onScenarioL3: () => void
 }
 
 export function RecordPanel({
@@ -38,6 +41,9 @@ export function RecordPanel({
   onReset,
   onBreak,
   onBreakAuth,
+  onScenarioL1,
+  onScenarioL2,
+  onScenarioL3,
 }: Props) {
   const reduce = useReducedMotion()
   const order = stepOrderFor(incident)
@@ -85,8 +91,8 @@ export function RecordPanel({
           <h1 className="nameplate text-[28px] leading-none text-[var(--ink)] md:text-[32px]">
             AutoMedic
           </h1>
-          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--ink-3)]">
-            Mission Control
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--sig-live)]">
+            Field medic for n8n · n8n that heals n8n
           </p>
           <div className="mt-4 h-px bg-[var(--rule)]" />
           <p className="mt-3 font-mono text-[12px] text-[var(--ink-2)]">
@@ -235,7 +241,7 @@ export function RecordPanel({
           onClick={onBreak}
           className="mt-2 w-full border border-transparent py-1.5 text-left font-mono text-[10px] text-[var(--ink-3)] underline-offset-2 hover:text-[var(--ink-2)] hover:underline disabled:opacity-50"
         >
-          Simulate vendor rename
+          L0 · Simulate vendor rename
         </button>
         <button
           type="button"
@@ -243,7 +249,31 @@ export function RecordPanel({
           onClick={onBreakAuth}
           className="w-full border border-transparent py-1.5 text-left font-mono text-[10px] text-[var(--ink-3)] underline-offset-2 hover:text-[var(--ink-2)] hover:underline disabled:opacity-50"
         >
-          Simulate auth expiry
+          L0 · Simulate auth expiry
+        </button>
+        <button
+          type="button"
+          disabled={mutating}
+          onClick={onScenarioL1}
+          className="w-full border border-transparent py-1.5 text-left font-mono text-[10px] text-[var(--ink-3)] underline-offset-2 hover:text-[var(--ink-2)] hover:underline disabled:opacity-50"
+        >
+          L1 · Simulate silent drift
+        </button>
+        <button
+          type="button"
+          disabled={mutating}
+          onClick={onScenarioL2}
+          className="w-full border border-transparent py-1.5 text-left font-mono text-[10px] text-[var(--ink-3)] underline-offset-2 hover:text-[var(--ink-2)] hover:underline disabled:opacity-50"
+        >
+          L2 · Simulate shape fail
+        </button>
+        <button
+          type="button"
+          disabled={mutating}
+          onClick={onScenarioL3}
+          className="w-full border border-transparent py-1.5 text-left font-mono text-[10px] text-[var(--ink-3)] underline-offset-2 hover:text-[var(--ink-2)] hover:underline disabled:opacity-50"
+        >
+          L3 · Simulate semantic + HITL
         </button>
       </div>
     </aside>

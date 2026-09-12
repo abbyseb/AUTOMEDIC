@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAutomedicState } from './hooks/useAutomedicState'
-import { postAutomedicBreak, postAutomedicBreakAuth, postAutomedicReset, postAutomedicScan } from './lib/api'
+import { postAutomedicBreak, postAutomedicBreakAuth, postAutomedicHitlPatch, postAutomedicReset, postAutomedicScan, postAutomedicScenario } from './lib/api'
 import type { MissionStatus } from './types/automedic'
 import { RecordPanel } from './components/RecordPanel'
 import { StagePanel } from './components/StagePanel'
@@ -87,17 +87,28 @@ export default function App() {
           onReset={() => void run(postAutomedicReset)}
           onBreak={() => void run(postAutomedicBreak)}
           onBreakAuth={() => void run(postAutomedicBreakAuth)}
+          onScenarioL1={() => void run(() => postAutomedicScenario('l1'))}
+          onScenarioL2={() => void run(() => postAutomedicScenario('l2'))}
+          onScenarioL3={() => void run(() => postAutomedicScenario('l3'))}
         />
 
         <main
           className="stage-wash min-h-0 overflow-auto px-8 py-8 md:px-12 md:py-10"
           style={{ backgroundColor: stageWash }}
         >
+          <header className="mb-8 text-center">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+              Mission Control
+            </p>
+          </header>
           <StagePanel
             incident={active}
             workflows={data?.watchedWorkflows ?? []}
             patientGraph={data?.patientGraph}
             loading={isLoading && !data}
+            mutating={mutating}
+            onHitlPatch={(id) => void run(() => postAutomedicHitlPatch(id, 'patch'))}
+            onHitlIgnore={(id) => void run(() => postAutomedicHitlPatch(id, 'ignore'))}
             loadError={
               isError ? (error instanceof Error ? error.message : 'Could not load state') : null
             }

@@ -40,7 +40,7 @@ async function main() {
 const SECRET = 'automedic-demo-secret';
 const h = $('Semantic Webhook').first().json.headers || {};
 const got = h['x-automedic-secret'] || h['X-AutoMedic-Secret'] || '';
-if (got && got !== SECRET) throw new Error('Unauthorized');
+if (!got || got !== SECRET) throw new Error('Unauthorized');
 
 const roles = ${roleJson};
 const item = $json || {};
