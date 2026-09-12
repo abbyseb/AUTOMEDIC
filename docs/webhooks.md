@@ -1,7 +1,12 @@
-# AutoMedic live webhooks (free Cloud — no n8n REST API)
+# AutoMedic webhooks
 
-Shared secret header: `X-AutoMedic-Secret: automedic-demo-secret`  
+**Preferred (real detect + patch):** self-hosted Docker — see [self-host.md](./self-host.md)  
+Base: `http://127.0.0.1:5678/webhook`
+
+**Legacy Cloud demo** (flag-based, no REST API):  
 Base: `https://kaviya-aj.app.n8n.cloud/webhook`
+
+Shared secret header: `X-AutoMedic-Secret: automedic-demo-secret`
 
 | Method | Path | Workflow | ID | Notes |
 |--------|------|----------|-----|-------|

@@ -1,77 +1,107 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { ActivityToasts } from './components/ActivityToasts'
-import { DemoControls } from './components/DemoControls'
-import { DiagnosisPanel } from './components/DiagnosisPanel'
-import { HeaderBar } from './components/HeaderBar'
-import { IncidentTimeline } from './components/IncidentTimeline'
-import { PatchDiffPanel } from './components/PatchDiffPanel'
-import { StatsBar } from './components/StatsBar'
-import { WorkflowHealthRail } from './components/WorkflowHealthRail'
 import { useAutomedicState } from './hooks/useAutomedicState'
 import { postAutomedicBreak, postAutomedicReset, postAutomedicScan } from './lib/api'
+import type { MissionStatus } from './types/automedic'
+import { RecordPanel } from './components/RecordPanel'
+import { StagePanel } from './components/StagePanel'
+import { isEscalatedIncident } from './lib/timeline'
+
+const TINT: Record<MissionStatus, string> = {
+  WATCHING: 'var(--tint-watch)',
+  SCANNING: 'var(--tint-scan)',
+  HEALING: 'var(--tint-heal)',
+  HEALED: 'var(--tint-healed)',
+  ERROR: 'var(--tint-error)',
+}
+
+const BAND: Record<MissionStatus, string> = {
+  WATCHING: 'var(--rule)',
+  SCANNING: 'var(--sig-live)',
+  HEALING: 'var(--sig-hold)',
+  HEALED: 'var(--sig-ok)',
+  ERROR: 'var(--sig-fault)',
+}
 
 export default function App() {
   const queryClient = useQueryClient()
-  const { data, isLoading, isError, error, dataUpdatedAt } = useAutomedicState()
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const { data, isLoading, isError, error, dataUpdatedAt, isFetching } = useAutomedicState()
   const [mutating, setMutating] = useState(false)
+  const [mutateError, setMutateError] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [now, setNow] = useState(() => Date.now())
 
-  const activeIncidentId = selectedId ?? data?.activeIncidentId ?? null
-  const activeIncident = useMemo(
-    () => data?.incidents.find((i) => i.id === activeIncidentId) ?? data?.incidents[0],
-    [data, activeIncidentId],
-  )
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(t)
+  }, [])
 
-  async function runMutation(fn: () => Promise<unknown>) {
+  const status = data?.status ?? 'WATCHING'
+
+  const active = useMemo(() => {
+    const id = selectedId ?? data?.activeIncidentId
+    return data?.incidents.find((i) => i.id === id) ?? data?.incidents[0] ?? null
+  }, [data, selectedId])
+
+  const stageWash =
+    active && isEscalatedIncident(active)
+      ? 'var(--tint-heal)'
+      : TINT[status]
+
+  const pollAgeSec =
+    dataUpdatedAt > 0 ? Math.max(0, Math.floor((now - dataUpdatedAt) / 1000)) : null
+
+  async function run(fn: () => Promise<unknown>) {
     setMutating(true)
+    setMutateError(null)
     try {
       await fn()
       await queryClient.invalidateQueries({ queryKey: ['automedic-state'] })
     } catch (err) {
-      console.error(err)
+      setMutateError(err instanceof Error ? err.message : 'Request failed')
     } finally {
       setMutating(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <HeaderBar
-        status={data?.status}
-        watchedCount={data?.stats.watchedCount}
-        lastScanAt={data?.lastScanAt}
-      >
-        <DemoControls
-          disabled={mutating}
-          onBreak={() => void runMutation(postAutomedicBreak)}
-          onScan={() => void runMutation(postAutomedicScan)}
-          onReset={() => void runMutation(postAutomedicReset)}
-        />
-      </HeaderBar>
+    <div className="flex h-dvh min-h-[640px] flex-col overflow-hidden bg-[var(--plate)]">
+      <div
+        className="status-band h-1.5 w-full shrink-0"
+        style={{ backgroundColor: BAND[status] }}
+        aria-hidden
+      />
 
-      <main className="flex-1 grid grid-cols-[280px_1fr_420px] gap-4 p-4 max-lg:grid-cols-1 min-h-0">
-        <WorkflowHealthRail
-          workflows={data?.watchedWorkflows}
-          loading={isLoading}
-          error={isError ? (error instanceof Error ? error.message : 'Failed to load') : null}
-        />
-
-        <IncidentTimeline
-          incident={activeIncident}
-          incidents={data?.incidents}
-          activeIncidentId={activeIncident?.id}
-          onSelectIncident={setSelectedId}
+      <div className="grid min-h-0 flex-1 lg:grid-cols-[360px_1fr]">
+        <RecordPanel
+          status={status}
+          watchedCount={data?.stats.watchedCount}
+          incident={active}
+          incidents={data?.incidents ?? []}
+          selectedId={selectedId ?? active?.id ?? null}
+          onSelect={setSelectedId}
+          mutating={mutating}
+          mutateError={mutateError}
+          pollAgeSec={isFetching && pollAgeSec === 0 ? 0 : pollAgeSec}
+          onScan={() => void run(postAutomedicScan)}
+          onReset={() => void run(postAutomedicReset)}
+          onBreak={() => void run(postAutomedicBreak)}
         />
 
-        <aside className="rounded-xl border border-[var(--border)] bg-[var(--panel)] p-4 space-y-6 overflow-auto min-h-0">
-          <DiagnosisPanel diagnosis={activeIncident?.diagnosis} gate={activeIncident?.gate} />
-          <PatchDiffPanel patch={activeIncident?.patch ?? null} />
-        </aside>
-      </main>
-
-      <StatsBar stats={data?.stats} dataUpdatedAt={dataUpdatedAt} />
-      <ActivityToasts incident={activeIncident} />
+        <main
+          className="stage-wash min-h-0 overflow-auto px-8 py-8 md:px-12 md:py-10"
+          style={{ backgroundColor: stageWash }}
+        >
+          <StagePanel
+            incident={active}
+            workflows={data?.watchedWorkflows ?? []}
+            loading={isLoading && !data}
+            loadError={
+              isError ? (error instanceof Error ? error.message : 'Could not load state') : null
+            }
+          />
+        </main>
+      </div>
     </div>
   )
 }

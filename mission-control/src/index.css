@@ -1,19 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: dark;
-  --bg: #0b0f14;
-  --panel: #121821;
-  --border: #243041;
-  --text: #e8eef7;
-  --muted: #8b9bb0;
-  --accent: #3ddc97;
-  --warn: #f5a524;
-  --danger: #ff5c5c;
-  --pill: #1a2330;
-  font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  color-scheme: light;
+
+  --plate: #dfe1e4;
+  --plate-recess: #cdd0d5;
+  --rule: #a9aeb6;
+  --rule-soft: #bfc3ca;
+
+  --ink: #16181c;
+  --ink-2: #3d434c;
+  --ink-3: #5a616b;
+
+  --sig-live: #1f4a7a;
+  --sig-ok: #145c3a;
+  --sig-hold: #7a4b06;
+  --sig-fault: #8c2f22;
+
+  --tint-watch: #cdd0d5;
+  --tint-scan: #c3ced9;
+  --tint-heal: #d7cfbc;
+  --tint-healed: #c6d3c6;
+  --tint-error: #dbc7c2;
+
+  --focus: #1f4a7a;
+  --display: "Archivo", "Helvetica Neue", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  font-family: var(--display);
+  background: var(--plate);
+  color: var(--ink);
 }
 
 * {
@@ -25,9 +41,86 @@ body,
 #root {
   margin: 0;
   min-height: 100%;
-  background: radial-gradient(1200px 600px at 10% -10%, #152033 0%, var(--bg) 55%);
+}
+
+body {
+  background: var(--plate);
+  color: var(--ink);
 }
 
 button {
   font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.font-display {
+  font-family: var(--display);
+}
+
+.font-mono {
+  font-family: var(--mono);
+}
+
+.nameplate {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 125;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.recess-grid {
+  background-image:
+    linear-gradient(to right, var(--rule-soft) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--rule-soft) 1px, transparent 1px);
+  background-size: 8px 8px;
+  background-position: 0 0;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.status-band {
+  transition: background-color 600ms ease;
+}
+
+.stage-wash {
+  transition: background-color 600ms ease;
+}
+
+.diff-mark {
+  background: color-mix(in srgb, var(--sig-ok) 28%, transparent);
+  box-decoration-break: clone;
+}
+
+.diff-mark-fault {
+  background: color-mix(in srgb, var(--sig-fault) 28%, transparent);
+  box-decoration-break: clone;
+}
+
+@keyframes diff-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.diff-wipe {
+  animation: diff-wipe 240ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-band,
+  .stage-wash {
+    transition: none;
+  }
+
+  .diff-wipe {
+    animation: none;
+  }
 }
