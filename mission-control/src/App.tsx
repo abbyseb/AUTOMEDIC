@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAutomedicState } from './hooks/useAutomedicState'
-import { postAutomedicBreak, postAutomedicReset, postAutomedicScan } from './lib/api'
+import { postAutomedicBreak, postAutomedicBreakAuth, postAutomedicReset, postAutomedicScan } from './lib/api'
 import type { MissionStatus } from './types/automedic'
 import { RecordPanel } from './components/RecordPanel'
 import { StagePanel } from './components/StagePanel'
@@ -86,6 +86,7 @@ export default function App() {
           onScan={() => void run(postAutomedicScan)}
           onReset={() => void run(postAutomedicReset)}
           onBreak={() => void run(postAutomedicBreak)}
+          onBreakAuth={() => void run(postAutomedicBreakAuth)}
         />
 
         <main
@@ -95,6 +96,7 @@ export default function App() {
           <StagePanel
             incident={active}
             workflows={data?.watchedWorkflows ?? []}
+            patientGraph={data?.patientGraph}
             loading={isLoading && !data}
             loadError={
               isError ? (error instanceof Error ? error.message : 'Could not load state') : null

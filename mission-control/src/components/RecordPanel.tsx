@@ -21,6 +21,7 @@ type Props = {
   onScan: () => void
   onReset: () => void
   onBreak: () => void
+  onBreakAuth: () => void
 }
 
 export function RecordPanel({
@@ -36,6 +37,7 @@ export function RecordPanel({
   onScan,
   onReset,
   onBreak,
+  onBreakAuth,
 }: Props) {
   const reduce = useReducedMotion()
   const order = stepOrderFor(incident)
@@ -234,6 +236,14 @@ export function RecordPanel({
           className="mt-2 w-full border border-transparent py-1.5 text-left font-mono text-[10px] text-[var(--ink-3)] underline-offset-2 hover:text-[var(--ink-2)] hover:underline disabled:opacity-50"
         >
           Simulate vendor rename
+        </button>
+        <button
+          type="button"
+          disabled={mutating}
+          onClick={onBreakAuth}
+          className="w-full border border-transparent py-1.5 text-left font-mono text-[10px] text-[var(--ink-3)] underline-offset-2 hover:text-[var(--ink-2)] hover:underline disabled:opacity-50"
+        >
+          Simulate auth expiry
         </button>
       </div>
     </aside>

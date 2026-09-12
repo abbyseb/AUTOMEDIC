@@ -19,7 +19,7 @@ export async function fetchAutomedicState(): Promise<AutomedicState> {
   return (await res.json()) as AutomedicState
 }
 
-async function postAutomedic(path: 'break' | 'scan' | 'reset'): Promise<MutationResult> {
+async function postAutomedic(path: 'break' | 'break-auth' | 'scan' | 'reset'): Promise<MutationResult> {
   if (USE_MOCK || !BASE_URL) {
     return { ok: true, mock: true }
   }
@@ -34,6 +34,10 @@ async function postAutomedic(path: 'break' | 'scan' | 'reset'): Promise<Mutation
 
 export function postAutomedicBreak(): Promise<MutationResult> {
   return postAutomedic('break')
+}
+
+export function postAutomedicBreakAuth(): Promise<MutationResult> {
+  return postAutomedic('break-auth')
 }
 
 export function postAutomedicScan(): Promise<MutationResult> {

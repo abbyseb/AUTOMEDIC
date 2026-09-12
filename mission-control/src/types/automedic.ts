@@ -62,6 +62,29 @@ export interface WatchedWorkflow {
   lastExecutionAt: string | null;
 }
 
+/** Live snapshot of the watched victim workflow (from n8n API). */
+export interface PatientGraphNode {
+  id: string;
+  name: string;
+  type: string;
+  x: number;
+  y: number;
+  role?: "auth" | "map" | "trigger" | "gate" | "normal" | string;
+}
+
+export interface PatientGraphEdge {
+  from: string;
+  to: string;
+}
+
+export interface PatientGraph {
+  workflowId: string;
+  workflowName: string;
+  nodes: PatientGraphNode[];
+  edges: PatientGraphEdge[];
+  openInN8nUrl?: string;
+}
+
 export interface Stats {
   autoHealedCount: number;
   mttrSeconds: number | null;
@@ -142,4 +165,6 @@ export interface AutomedicState {
   incidents: Incident[];
   /** Incident the UI should focus (timeline/diagnosis/diff). */
   activeIncidentId: string | null;
+  /** Live Revenue Ops graph from n8n (optional; null if fetch failed). */
+  patientGraph?: PatientGraph | null;
 }

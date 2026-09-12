@@ -1,28 +1,48 @@
-import type { Incident, WatchedWorkflow } from '../types/automedic'
+import type { Incident, PatientGraph, WatchedWorkflow } from '../types/automedic'
 import { formatClock, glossFailure, isEscalatedIncident } from '../lib/timeline'
 import { SurgicalDiff } from './SurgicalDiff'
+import { WorkflowPreview } from './WorkflowPreview'
 
 type Props = {
   incident?: Incident | null
   workflows: WatchedWorkflow[]
+  patientGraph?: PatientGraph | null
   loading: boolean
   loadError: string | null
 }
 
-export function StagePanel({ incident, workflows, loading, loadError }: Props) {
+export function StagePanel({ incident, workflows, patientGraph, loading, loadError }: Props) {
   if (loading) {
     return <p className="font-mono text-[12px] text-[var(--ink-3)]">Loading state…</p>
   }
   if (loadError) {
     return <p className="font-mono text-[13px] text-[var(--sig-fault)]">{loadError}</p>
   }
+
+  const preview = <WorkflowPreview graph={patientGraph} incident={incident} />
+
   if (!incident) {
-    return <IdleStage workflows={workflows} />
+    return (
+      <div>
+        <IdleStage workflows={workflows} />
+        {preview}
+      </div>
+    )
   }
   if (isEscalatedIncident(incident)) {
-    return <EscalateStage incident={incident} />
+    return (
+      <div>
+        <EscalateStage incident={incident} />
+        {preview}
+      </div>
+    )
   }
-  return <HealStage incident={incident} />
+  return (
+    <div>
+      <HealStage incident={incident} />
+      {preview}
+    </div>
+  )
 }
 
 function IdleStage({ workflows }: { workflows: WatchedWorkflow[] }) {
@@ -85,9 +105,14 @@ function EscalateStage({ incident }: { incident: Incident }) {
         <p className="mt-2 font-mono text-[12px] text-[var(--ink-2)]">{incident.gate.summary}</p>
       )}
       {incident.diagnosis?.reason && (
-        <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-[var(--ink-2)]">
-          {incident.diagnosis.reason}
-        </p>
+        <div className="mt-4 max-w-xl">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+            OpenAI reason
+          </p>
+          <p className="mt-2 text-[14px] leading-relaxed text-[var(--ink-2)]">
+            {incident.diagnosis.reason}
+          </p>
+        </div>
       )}
       <p className="mt-8 border border-[var(--sig-hold)] bg-[color-mix(in_srgb,var(--sig-hold)_12%,var(--plate))] px-4 py-3 font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--sig-hold)]">
         No workflow mutation performed
@@ -132,12 +157,19 @@ function HealStage({ incident }: { incident: Incident }) {
       )}
 
       {d?.reason && (
-        <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-[var(--ink-2)]">{d.reason}</p>
+        <div className="mt-4 max-w-xl">
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+            OpenAI reason
+          </p>
+          <p className="mt-2 text-[14px] leading-relaxed text-[var(--ink-2)]">{d.reason}</p>
+        </div>
       )}
 
       {d && d.observedFields.length > 0 && (
         <p className="mt-3 font-mono text-[11px] text-[var(--ink-3)]">
-          observed: {d.observedFields.join(', ')}
+          observed:{' '}
+          {d.observedFields.slice(0, 8).join(', ')}
+          {d.observedFields.length > 8 ? ` (+${d.observedFields.length - 8} more)` : ''}
         </p>
       )}
 

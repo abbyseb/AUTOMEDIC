@@ -21,21 +21,23 @@ Login: `automedic@local.dev` / `AutomedicDemo1!` (local demo only)
 
 ## Demo loop
 
+Full Levels 0→3 (heal, silent audit, shape fail, semantic propose): see **[demo-runbook.md](./demo-runbook.md)**.
+
+Quick Level 0 only:
+
 1. Open **Revenue Ops Pipeline** in n8n (healthy)
-2. Change **Map to CRM Fields** `email_address` → `email` (or Mission Control “Simulate vendor rename”)
-3. Run / Break so it fails
-4. Press **Scan** — LLM diagnoses, evidence gate checks payload keys, surgical PUT, re-run verifies
-5. Point at seeded **AUTH_EXPIRED** escalate (Reset seeds it) — safety refusal
+2. Mission Control **Break** (or rename Map `email_address` → `email`)
+3. **Scan** — LLM + evidence + surgical PUT + verify
+4. Plant a canvas `401 Unauthorized` → **Scan** → AUTH escalate (no seed)
 
 ## Webhooks
 
 Base `http://127.0.0.1:5678/webhook`  
 Header `X-AutoMedic-Secret: automedic-demo-secret`
 
-- `POST /automedic/break`
-- `POST /automedic/scan`
+- `POST /automedic/break` · `/scan` · `/reset` · `/audit` · `/semantic`
 - `GET /automedic/state`
-- `POST /automedic/reset`
+- `POST /revenue-ops` (victim; no secret)
 
 ## FE env (`mission-control/.env.local`)
 
