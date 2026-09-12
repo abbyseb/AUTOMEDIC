@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/abbyseb/SIGN-OS/contracts/state.schema.json",
+  "title": "AutomedicState",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "generatedAt",
+    "status",
+    "lastScanAt",
+    "watchedWorkflows",
+    "stats",
+    "incidents",
+    "activeIncidentId"
+  ],
+  "properties": {
+    "version": { "const": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "status": {
+      "type": "string",
+      "enum": ["WATCHING", "SCANNING", "HEALING", "HEALED", "ERROR"]
+    },
+    "lastScanAt": { "type": ["string", "null"], "format": "date-time" },
+    "watchedWorkflows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/watchedWorkflow" }
+    },
+    "stats": { "$ref": "#/$defs/stats" },
+    "incidents": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/incident" }
+    },
+    "activeIncidentId": { "type": ["string", "null"] }
+  },
+  "$defs": {
+    "watchedWorkflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "tag",
+        "health",
+        "lastExecutionId",
+        "lastExecutionStatus",
+        "lastExecutionAt"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "tag": { "type": "string" },
+        "health": { "type": "string", "enum": ["healthy", "unhealthy", "unknown"] },
+        "lastExecutionId": { "type": ["string", "null"] },
+        "lastExecutionStatus": {
+          "type": ["string", "null"],
+          "enum": ["success", "error", "running", "unknown", null]
+        },
+        "lastExecutionAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "autoHealedCount",
+        "mttrSeconds",
+        "humanTouches",
+        "watchedCount",
+        "openIncidents"
+      ],
+      "properties": {
+        "autoHealedCount": { "type": "integer", "minimum": 0 },
+        "mttrSeconds": { "type": ["number", "null"], "minimum": 0 },
+        "humanTouches": { "type": "integer", "minimum": 0 },
+        "watchedCount": { "type": "integer", "minimum": 0 },
+        "openIncidents": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "diagnosis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failureType",
+        "confidence",
+        "autoRepairSafe",
+        "reason",
+        "sourceField",
+        "targetField",
+        "observedFields",
+        "failedNodeName"
+      ],
+      "properties": {
+        "failureType": {
+          "type": "string",
+          "enum": [
+            "FIELD_MAPPING",
+            "AUTH_EXPIRED",
+            "RATE_LIMIT",
+            "TIMEOUT",
+            "API_ERROR",
+            "UNKNOWN"
+          ]
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "autoRepairSafe": { "type": "boolean" },
+        "reason": { "type": "string" },
+        "sourceField": { "type": ["string", "null"] },
+        "targetField": { "type": ["string", "null"] },
+        "observedFields": { "type": "array", "items": { "type": "string" } },
+        "failedNodeName": { "type": "string" }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "threshold", "summary"],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "threshold": { "type": "number" },
+        "summary": { "type": "string" }
+      }
+    },
+    "patch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeName",
+        "oldMapping",
+        "newMapping",
+        "before",
+        "after",
+        "replacementCount",
+        "workflowVersionBefore",
+        "workflowVersionAfter",
+        "snapshotId"
+      ],
+      "properties": {
+        "nodeName": { "type": "string" },
+        "oldMapping": { "type": "string" },
+        "newMapping": { "type": "string" },
+        "before": { "type": "string" },
+        "after": { "type": "string" },
+        "replacementCount": { "type": "integer", "minimum": 0 },
+        "workflowVersionBefore": { "type": ["integer", "null"] },
+        "workflowVersionAfter": { "type": ["integer", "null"] },
+        "snapshotId": { "type": ["string", "null"] }
+      }
+    },
+    "verify": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["newExecutionId", "status", "durationMs"],
+      "properties": {
+        "newExecutionId": { "type": ["string", "null"] },
+        "status": {
+          "type": ["string", "null"],
+          "enum": ["success", "error", "running", "unknown", null]
+        },
+        "durationMs": { "type": ["number", "null"] }
+      }
+    },
+    "timelineEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step", "status", "message", "at", "durationMs"],
+      "properties": {
+        "step": {
+          "type": "string",
+          "enum": [
+            "DETECTED",
+            "DIAGNOSING",
+            "DIAGNOSED",
+            "GATE",
+            "PATCHING",
+            "PATCHED",
+            "RE_RUNNING",
+            "VERIFIED",
+            "ESCALATED",
+            "SUPPRESSED"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "active", "done", "failed", "skipped"]
+        },
+        "message": { "type": ["string", "null"] },
+        "at": { "type": ["string", "null"], "format": "date-time" },
+        "durationMs": { "type": ["number", "null"] }
+      }
+    },
+    "incident": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "executionId",
+        "workflowId",
+        "workflowName",
+        "failedNode",
+        "errorMessage",
+        "status",
+        "createdAt",
+        "updatedAt",
+        "diagnosis",
+        "gate",
+        "patch",
+        "verify",
+        "timeline"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "executionId": { "type": "string" },
+        "workflowId": { "type": "string" },
+        "workflowName": { "type": "string" },
+        "failedNode": { "type": "string" },
+        "errorMessage": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": [
+            "detected",
+            "diagnosing",
+            "diagnosed",
+            "gate_passed",
+            "gate_refused",
+            "patching",
+            "patched",
+            "re_running",
+            "verified",
+            "repair_failed",
+            "escalated",
+            "suppressed"
+          ]
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "diagnosis": {
+          "anyOf": [{ "$ref": "#/$defs/diagnosis" }, { "type": "null" }]
+        },
+        "gate": {
+          "anyOf": [{ "$ref": "#/$defs/gate" }, { "type": "null" }]
+        },
+        "patch": {
+          "anyOf": [{ "$ref": "#/$defs/patch" }, { "type": "null" }]
+        },
+        "verify": {
+          "anyOf": [{ "$ref": "#/$defs/verify" }, { "type": "null" }]
+        },
+        "timeline": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/timelineEvent" }
+        }
+      }
+    }
+  }
+}
