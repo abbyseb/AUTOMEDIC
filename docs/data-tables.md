@@ -30,3 +30,8 @@ UI timeline = rows for an `incident_id` ordered by `occurred_at` asc.
 - `victim_healthy` snapshot for reset
 
 Verify by hand in n8n Data Tables UI or via MCP `get_data_table_rows`.
+
+
+## Victim workflow
+- **Customer Order Sync** id `ecqdmAdfqzbWT0ds` — see [`victim-workflow.md`](./victim-workflow.md)
+- Healthy snapshot: `victim_healthy_v2` in `automedic_snapshots` + [`victim-healthy.snapshot.json`](./victim-healthy.snapshot.json)

@@ -1,0 +1,148 @@
+{
+  "id": "ecqdmAdfqzbWT0ds",
+  "name": "Customer Order Sync",
+  "nodes": [
+    {
+      "name": "Run Manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "parameters": {}
+    },
+    {
+      "name": "Mock Orders",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "order_id",
+              "value": "ORD-1001",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "email_address",
+              "value": "ada@example.com",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "total",
+              "value": 149.5,
+              "type": "number"
+            },
+            {
+              "id": "4",
+              "name": "currency",
+              "value": "AUD",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Map to CRM Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "customerEmail",
+              "value": "={{ $json.email_address }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "orderId",
+              "value": "={{ $json.order_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "amount",
+              "value": "={{ $json.total }}",
+              "type": "number"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create CRM Contact",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const email = $json.customerEmail;\nconst keys = Object.keys($json).sort();\nif (!email) {\n  throw new Error(\"Required field 'customerEmail' is empty. Input JSON contains: \" + keys.join(', ') + \".\");\n}\nreturn {\n  json: {\n    ...$json,\n    crmContactId: 'crm_' + String($json.orderId || 'unknown'),\n    synced: true,\n  }\n};"
+      }
+    },
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "customer-order-sync",
+        "responseMode": "lastNode"
+      }
+    }
+  ],
+  "connections": {
+    "Run Manually": {
+      "main": [
+        [
+          {
+            "node": "Mock Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mock Orders": {
+      "main": [
+        [
+          {
+            "node": "Map to CRM Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map to CRM Fields": {
+      "main": [
+        [
+          {
+            "node": "Create CRM Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Mock Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

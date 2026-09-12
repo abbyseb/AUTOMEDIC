@@ -1,17 +1,17 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-12T05:50:00.000Z",
-  "status": "WATCHING",
-  "lastScanAt": null,
+  "generatedAt": "2026-09-12T05:47:12.000Z",
+  "status": "HEALING",
+  "lastScanAt": "2026-09-12T05:46:50.000Z",
   "watchedWorkflows": [
     {
       "id": "wf_customer_order_sync",
       "name": "Customer Order Sync",
       "tag": "automedic:watch",
-      "health": "healthy",
-      "lastExecutionId": "8799",
-      "lastExecutionStatus": "success",
-      "lastExecutionAt": "2026-09-12T05:40:00.000Z"
+      "health": "unhealthy",
+      "lastExecutionId": "8842",
+      "lastExecutionStatus": "error",
+      "lastExecutionAt": "2026-09-12T05:46:48.000Z"
     },
     {
       "id": "wf_invoice_reconciliation",
@@ -37,9 +37,109 @@
     "mttrSeconds": null,
     "humanTouches": 0,
     "watchedCount": 3,
-    "openIncidents": 1
+    "openIncidents": 2
   },
   "incidents": [
+    {
+      "id": "inc_8842",
+      "executionId": "8842",
+      "workflowId": "wf_customer_order_sync",
+      "workflowName": "Customer Order Sync",
+      "failedNode": "Create CRM Contact",
+      "errorMessage": "Required field 'customerEmail' is empty. Input JSON contains: order_id, email_address, total, currency.",
+      "status": "patching",
+      "createdAt": "2026-09-12T05:46:48.000Z",
+      "updatedAt": "2026-09-12T05:47:05.000Z",
+      "diagnosis": {
+        "failureType": "FIELD_MAPPING",
+        "confidence": 0.93,
+        "autoRepairSafe": true,
+        "reason": "Node maps email from $json.email but upstream payload exposes email_address. Replace the source field reference.",
+        "sourceField": "email",
+        "targetField": "email_address",
+        "observedFields": ["order_id", "email_address", "total", "currency"],
+        "failedNodeName": "Map to CRM Fields"
+      },
+      "gate": {
+        "passed": true,
+        "threshold": 0.8,
+        "summary": "FIELD_MAPPING + autoRepairSafe + confidence 0.93 ≥ 0.80"
+      },
+      "patch": {
+        "nodeName": "Map to CRM Fields",
+        "oldMapping": "{{$json.email}}",
+        "newMapping": "{{$json.email_address}}",
+        "before": "customerEmail: {{$json.email}}",
+        "after": "customerEmail: {{$json.email_address}}",
+        "replacementCount": 1,
+        "workflowVersionBefore": 7,
+        "workflowVersionAfter": 8,
+        "snapshotId": "snap_inc_8842"
+      },
+      "verify": {
+        "newExecutionId": null,
+        "status": null,
+        "durationMs": null
+      },
+      "timeline": [
+        {
+          "step": "DETECTED",
+          "status": "done",
+          "message": "Execution 8842 failed at node Create CRM Contact",
+          "at": "2026-09-12T05:46:48.000Z",
+          "durationMs": null
+        },
+        {
+          "step": "DIAGNOSING",
+          "status": "done",
+          "message": "Sending failed node params + input keys to model",
+          "at": "2026-09-12T05:46:50.000Z",
+          "durationMs": 2100
+        },
+        {
+          "step": "DIAGNOSED",
+          "status": "done",
+          "message": "FIELD_MAPPING · confidence 0.93 · safe=true",
+          "at": "2026-09-12T05:46:52.100Z",
+          "durationMs": null
+        },
+        {
+          "step": "GATE",
+          "status": "done",
+          "message": "GATE PASSED — FIELD_MAPPING + safe + 0.93 ≥ 0.80",
+          "at": "2026-09-12T05:46:52.200Z",
+          "durationMs": null
+        },
+        {
+          "step": "PATCHING",
+          "status": "active",
+          "message": "Snapshot saved; applying field mapping patch",
+          "at": "2026-09-12T05:46:53.000Z",
+          "durationMs": null
+        },
+        {
+          "step": "PATCHED",
+          "status": "pending",
+          "message": null,
+          "at": null,
+          "durationMs": null
+        },
+        {
+          "step": "RE_RUNNING",
+          "status": "pending",
+          "message": null,
+          "at": null,
+          "durationMs": null
+        },
+        {
+          "step": "VERIFIED",
+          "status": "pending",
+          "message": null,
+          "at": null,
+          "durationMs": null
+        }
+      ]
+    },
     {
       "id": "inc_seed_auth",
       "executionId": "seed_auth_001",
@@ -106,5 +206,5 @@
       ]
     }
   ],
-  "activeIncidentId": "inc_seed_auth"
+  "activeIncidentId": "inc_8842"
 }
