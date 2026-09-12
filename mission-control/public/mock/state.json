@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-12T05:50:00.000Z",
+  "status": "WATCHING",
+  "lastScanAt": null,
+  "watchedWorkflows": [
+    {
+      "id": "wf_customer_order_sync",
+      "name": "Customer Order Sync",
+      "tag": "automedic:watch",
+      "health": "healthy",
+      "lastExecutionId": "8799",
+      "lastExecutionStatus": "success",
+      "lastExecutionAt": "2026-09-12T05:40:00.000Z"
+    },
+    {
+      "id": "wf_invoice_reconciliation",
+      "name": "Invoice Reconciliation",
+      "tag": "automedic:watch",
+      "health": "healthy",
+      "lastExecutionId": "8801",
+      "lastExecutionStatus": "success",
+      "lastExecutionAt": "2026-09-12T05:10:00.000Z"
+    },
+    {
+      "id": "wf_support_ticket_triage",
+      "name": "Support Ticket Triage",
+      "tag": "automedic:watch",
+      "health": "healthy",
+      "lastExecutionId": "8802",
+      "lastExecutionStatus": "success",
+      "lastExecutionAt": "2026-09-12T05:11:00.000Z"
+    }
+  ],
+  "stats": {
+    "autoHealedCount": 0,
+    "mttrSeconds": null,
+    "humanTouches": 0,
+    "watchedCount": 3,
+    "openIncidents": 1
+  },
+  "incidents": [
+    {
+      "id": "inc_seed_auth",
+      "executionId": "seed_auth_001",
+      "workflowId": "wf_stripe_payout_sync",
+      "workflowName": "Stripe Payout Sync",
+      "failedNode": "Stripe API",
+      "errorMessage": "401 Unauthorized — API key expired",
+      "status": "escalated",
+      "createdAt": "2026-09-12T04:00:00.000Z",
+      "updatedAt": "2026-09-12T04:00:05.000Z",
+      "diagnosis": {
+        "failureType": "AUTH_EXPIRED",
+        "confidence": 0.91,
+        "autoRepairSafe": false,
+        "reason": "Credential rejection; AutoMedic will not rotate secrets.",
+        "sourceField": null,
+        "targetField": null,
+        "observedFields": [],
+        "failedNodeName": "Stripe API"
+      },
+      "gate": {
+        "passed": false,
+        "threshold": 0.8,
+        "summary": "GATE REFUSED — AUTH_EXPIRED is not auto-repairable"
+      },
+      "patch": null,
+      "verify": null,
+      "timeline": [
+        {
+          "step": "DETECTED",
+          "status": "done",
+          "message": "Execution seed_auth_001 failed at node Stripe API",
+          "at": "2026-09-12T04:00:00.000Z",
+          "durationMs": null
+        },
+        {
+          "step": "DIAGNOSING",
+          "status": "done",
+          "message": "Classifying failure",
+          "at": "2026-09-12T04:00:01.000Z",
+          "durationMs": 1800
+        },
+        {
+          "step": "DIAGNOSED",
+          "status": "done",
+          "message": "AUTH_EXPIRED · confidence 0.91 · safe=false",
+          "at": "2026-09-12T04:00:02.800Z",
+          "durationMs": null
+        },
+        {
+          "step": "GATE",
+          "status": "skipped",
+          "message": "ESCALATED TO HUMAN — auto-repair not allowed for AUTH_EXPIRED",
+          "at": "2026-09-12T04:00:02.900Z",
+          "durationMs": null
+        },
+        {
+          "step": "ESCALATED",
+          "status": "done",
+          "message": "No workflow mutation performed",
+          "at": "2026-09-12T04:00:03.000Z",
+          "durationMs": null
+        }
+      ]
+    }
+  ],
+  "activeIncidentId": "inc_seed_auth"
+}
