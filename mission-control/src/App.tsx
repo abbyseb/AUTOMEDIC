@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAutomedicState } from './hooks/useAutomedicState'
-import { postAutomedicBreak, postAutomedicBreakAuth, postAutomedicHitlPatch, postAutomedicReset, postAutomedicScan, postAutomedicScenario } from './lib/api'
+import { postAutomedicAudit, postAutomedicBreak, postAutomedicBreakAuth, postAutomedicHitlPatch, postAutomedicReset, postAutomedicScan, postAutomedicScenario } from './lib/api'
 import type { MissionStatus } from './types/automedic'
 import { RecordPanel } from './components/RecordPanel'
 import { StagePanel } from './components/StagePanel'
@@ -84,6 +84,7 @@ export default function App() {
           mutateError={mutateError}
           pollAgeSec={isFetching && pollAgeSec === 0 ? 0 : pollAgeSec}
           onScan={() => void run(postAutomedicScan)}
+          onAudit={() => void run(postAutomedicAudit)}
           onReset={() => void run(postAutomedicReset)}
           onBreak={() => void run(postAutomedicBreak)}
           onBreakAuth={() => void run(postAutomedicBreakAuth)}

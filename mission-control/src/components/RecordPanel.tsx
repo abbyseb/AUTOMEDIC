@@ -19,6 +19,7 @@ type Props = {
   mutateError: string | null
   pollAgeSec: number | null
   onScan: () => void
+  onAudit: () => void
   onReset: () => void
   onBreak: () => void
   onBreakAuth: () => void
@@ -38,6 +39,7 @@ export function RecordPanel({
   mutateError,
   pollAgeSec,
   onScan,
+  onAudit,
   onReset,
   onBreak,
   onBreakAuth,
@@ -235,6 +237,14 @@ export function RecordPanel({
             Reset
           </button>
         </div>
+        <button
+          type="button"
+          disabled={mutating}
+          onClick={onAudit}
+          className="mt-2 w-full border border-[var(--rule)] bg-transparent px-3 py-2.5 text-center text-[12px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-2)] hover:border-[var(--ink)] hover:text-[var(--ink)] disabled:opacity-50"
+        >
+          {mutating ? 'Working' : 'Run Audit'}
+        </button>
         <button
           type="button"
           disabled={mutating}
