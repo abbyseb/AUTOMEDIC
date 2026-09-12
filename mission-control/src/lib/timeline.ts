@@ -59,5 +59,7 @@ export function glossFailure(ft?: string | null): string | null {
   if (!ft) return null
   if (ft === 'FIELD_MAPPING') return 'Broken field mapping'
   if (ft === 'AUTH_EXPIRED') return 'Expired credentials'
+  if (ft === 'SILENT_DRIFT') return 'Silent dangling reference'
+  if (ft === 'SEMANTIC_MISMATCH') return 'Semantic / shape mismatch'
   return ft.split('_').join(' ').toLowerCase()
 }

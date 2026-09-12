@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "description": "Declared field roles for AutoMedic Level 2–3 checks. Roles are intent, not mere key presence.",
+  "workflows": {
+    "revenue-ops": {
+      "workflowName": "Revenue Ops Pipeline",
+      "roles": [
+        {
+          "mappedField": "customerEmail",
+          "role": "email",
+          "required": true,
+          "preferredSources": ["email_address", "email", "customer_email"],
+          "shape": "email"
+        },
+        {
+          "mappedField": "accountName",
+          "role": "organization_name",
+          "required": true,
+          "preferredSources": ["account_name", "company", "name"],
+          "shape": "nonempty_string"
+        },
+        {
+          "mappedField": "dealAmount",
+          "role": "money_amount",
+          "required": true,
+          "preferredSources": ["amount", "dealAmount", "amount_cents"],
+          "shape": "positive_number"
+        },
+        {
+          "mappedField": "segment",
+          "role": "segment_enum",
+          "required": true,
+          "preferredSources": ["segment"],
+          "shape": "enum",
+          "enumValues": ["B2B", "B2C", "SMB"]
+        }
+      ]
+    }
+  }
+}
