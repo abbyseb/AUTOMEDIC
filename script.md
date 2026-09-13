@@ -1,80 +1,68 @@
-# AutoMedic pitch script (~90–120s)
+# AutoMedic pitch (~60s · 5 scenarios)
 
 ## Setup
 
-Open Mission Control and/or the n8n canvas on healthy **Revenue Ops Pipeline**.
+Mission Control open. Patient healthy. **Reset** once before you start.  
+Don’t wait for OpenAI mid-pitch — click, narrate, move. Full waits are for the video.
 
 ---
 
-## Script
+## Script (60s)
 
-Alright. Meet our patient.
+**[0:00 · hook · ~8s]**
 
-This is **Revenue Ops Pipeline** — the quiet overachiever. Mock lead comes in, maps to CRM, posts the deal, calculates commission, sends a nice little “we made money” notification. It works. Almost every day. Beautiful. Green checkmarks. You could put it on a vision board.
+Meet the patient — **Revenue Ops**. Sixteen nodes, green every day.  
+Error Trigger will text you it broke. It will **not** tell you which field.  
+**AutoMedic** does — surgical patch, evidence gate, not Ctrl+Z.
 
-**Until…**
+**[0:08 · ① heal · ~12s]** *[Break → Scan]*
 
-*[Break — or flip `email_address` → `email`]*
+Vendor renames `email_address` → `email`. Run dies.  
+Scan: OpenAI reason → evidence gate → one remap → verify. Patient sits up.
 
-…until a vendor “helpfully” renames a field.  
-`email_address` becomes `email`. One character family feud.
+**[0:20 · ② AUTH refuse · ~10s]** *[Simulate auth expiry → Scan]*
 
-Suddenly your CRM opportunity thinks the customer’s email is *nothing*. The run fails. Or worse — it *succeeds* down the wrong branch and nobody notices until finance asks why Ada Robotics is getting B2C pricing.
+Credentials expire? *“That’s your problem, human.”*  
+High confidence. **Zero mutation.** Respect. *[Reset]*
 
-And here’s the bit that keeps ops people up at night:
+**[0:30 · ③ silent drift · ~10s]** *[L1 / Audit]*
 
-You’re not babysitting **one** workflow.  
-You’re theoretically responsible for **hundreds**.  
-You do not have time to open every canvas, click every node, and whisper *“are you okay?”* to `$json`.
+IF points at `is_c2c`. Run still **200** — green ≠ correct.  
+Audit flags the dangling ref. We **escalate**. We don’t guess the branch.
 
-Error Trigger will text you that it hurt itself.  
-It will **not** tell you *which field* betrayed you.
+**[0:40 · ④ shape hard-fail · ~8s]** *[L2]*
 
-*[Gesture to Mission Control]*
+Map email from `account_name`? **Validate Mapped Fields** hard-fails.  
+Poison never reaches Salesforce.
 
-So… we brought a friend.
+**[0:48 · ⑤ semantic + HITL · ~12s]** *[L3 → Approve & patch]*
 
-Say hi to **AutoMedic** — an **n8n-built innovation for n8n workflows**.  
-Not a vibe-based copilot. Not “Ctrl+Z the whole patient.”
+Key exists, meaning wrong. We **propose**, not auto-PUT.  
+Human signs off → Approve & patch → verified.
 
-AutoMedic is the colleague who:
+**[land it]**
 
-1. Reads the crime scene (failed run + live payload keys)
-2. Asks the model for a **plain-English** diagnosis — you’ll see it labeled **OpenAI reason**
-3. Runs an **evidence gate** — “is this remap actually backed by data?”
-4. If yes: **one surgical patch**, re-run, verify
-5. If it’s auth, nonsense, or “the key exists but means the wrong thing”: **escalate**. No secret-rotating fan fiction.
+> Error Trigger: it broke.  
+> AutoMedic: **which field, why, fix only that — or refuse.**
 
-*[Scan]*
+---
 
-Watch: Break → Scan → `email` becomes `email_address` again. Patient sits up. Commission is a number again, not the word `"B2B"`. We’re professionals.
+## Cue sheet (click order)
 
-*[Simulate auth expiry → Scan]*
-
-And if credentials expire? AutoMedic says: *“That’s your problem, human.”*  
-High confidence. Zero mutation. Respect.  
-*(Reset removes the AUTH probe and puts the patient back.)*
-
-
-*[Optional 10s closer if judges lean in]*
-
-Silent IF drift? We **audit**, we don’t guess.  
-Wrong shape in the CRM map? We **hard-fail** before you poison Salesforce.  
-Semantic misuse? We **propose** and escalate — then **Approve & patch (HITL)** when a human signs off.
-
-### One-liner to land it
-
-> Error Trigger tells you it broke.  
-> **AutoMedic tells you which field broke, why, and fixes only that — for the workflows you don’t have time to babysit.**
+| t | Click | One line |
+|---|--------|----------|
+| 0:08 | **Break** → **Scan** | Surgical heal |
+| 0:20 | **Auth expiry** → **Scan** → **Reset** | Refuse AUTH |
+| 0:30 | **L1** / **Run Audit** | Silent green wrong |
+| 0:40 | **L2** | Shape hard-fail |
+| 0:48 | **L3** → **Approve & patch** | Propose → HITL |
 
 ---
 
 ## Presenter tips
 
-- Call Revenue Ops **“the patient”** once early — then AutoMedic is the doctor. Easy laugh track.
-- Say **“surgical, not Ctrl+Z”** while the diff is on screen.
-- Don’t rush the refuse beat — judges trust systems that know when to stop.
+- One breath per scenario — don’t explain the architecture twice.
+- Pause half a beat on **refuse** and **HITL** — that’s the trust story.
+- If Scan lags, keep talking the gate; don’t dead-air.
 
-## Demo beats (cue sheet)
-
-See [docs/demo-runbook.md](./docs/demo-runbook.md) for full Levels 0→3 Do / Expect steps.
+Full Do / Expect: [docs/demo-runbook.md](./docs/demo-runbook.md).

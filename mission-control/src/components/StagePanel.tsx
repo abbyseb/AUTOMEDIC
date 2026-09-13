@@ -122,18 +122,21 @@ function EscalateStage({
     (ft === 'SEMANTIC_MISMATCH' || ft === 'SILENT_DRIFT') && typeof onHitlIgnore === 'function'
   const reasonLabel = ft === 'SILENT_DRIFT' ? 'Audit reason' : 'OpenAI reason'
 
+  // Only show proposals when HITL can act (L1/L3). Never invent fake remap chips for FIELD_MAPPING refuses.
   const displaySuggestions =
-    suggestions.length > 0
-      ? suggestions
-      : incident.diagnosis?.sourceField && incident.diagnosis?.targetField
-        ? [
-            {
-              mappedField: ft === 'SILENT_DRIFT' ? 'expression' : 'customerEmail',
-              expectedField: incident.diagnosis.sourceField,
-              replacementField: incident.diagnosis.targetField,
-            },
-          ]
-        : []
+    ft === 'SEMANTIC_MISMATCH' || ft === 'SILENT_DRIFT'
+      ? suggestions.length > 0
+        ? suggestions
+        : incident.diagnosis?.sourceField && incident.diagnosis?.targetField
+          ? [
+              {
+                mappedField: ft === 'SILENT_DRIFT' ? 'expression' : 'customerEmail',
+                expectedField: incident.diagnosis.sourceField,
+                replacementField: incident.diagnosis.targetField,
+              },
+            ]
+          : []
+      : []
 
   return (
     <div>

@@ -3,9 +3,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAutomedicState } from './hooks/useAutomedicState'
 import { postAutomedicAudit, postAutomedicBreak, postAutomedicBreakAuth, postAutomedicHitlPatch, postAutomedicReset, postAutomedicScan, postAutomedicScenario } from './lib/api'
 import type { MissionStatus } from './types/automedic'
+import { FutureOpsDashboard } from './components/FutureOpsDashboard'
 import { RecordPanel } from './components/RecordPanel'
 import { StagePanel } from './components/StagePanel'
 import { isEscalatedIncident } from './lib/timeline'
+
+type ViewMode = 'live' | 'future'
 
 const TINT: Record<MissionStatus, string> = {
   WATCHING: 'var(--tint-watch)',
@@ -29,6 +32,7 @@ export default function App() {
   const [mutating, setMutating] = useState(false)
   const [mutateError, setMutateError] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [view, setView] = useState<ViewMode>('live')
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
@@ -95,25 +99,62 @@ export default function App() {
 
         <main
           className="stage-wash min-h-0 overflow-auto px-8 py-8 md:px-12 md:py-10"
-          style={{ backgroundColor: stageWash }}
+          style={{ backgroundColor: view === 'future' ? 'var(--tint-watch)' : stageWash }}
         >
-          <header className="mb-8 text-center">
+          <header className="mb-8 flex flex-col items-center gap-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
               Mission Control
             </p>
+            <div
+              className="inline-flex border border-[var(--rule)] bg-[var(--plate)] p-0.5"
+              role="tablist"
+              aria-label="Mission Control view"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === 'live'}
+                onClick={() => setView('live')}
+                className={
+                  view === 'live'
+                    ? 'bg-[var(--ink)] px-4 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--plate)]'
+                    : 'px-4 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-2)] hover:text-[var(--ink)]'
+                }
+              >
+                Live demo
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === 'future'}
+                onClick={() => setView('future')}
+                className={
+                  view === 'future'
+                    ? 'bg-[var(--ink)] px-4 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--plate)]'
+                    : 'px-4 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-2)] hover:text-[var(--ink)]'
+                }
+              >
+                Future version
+              </button>
+            </div>
           </header>
-          <StagePanel
-            incident={active}
-            workflows={data?.watchedWorkflows ?? []}
-            patientGraph={data?.patientGraph}
-            loading={isLoading && !data}
-            mutating={mutating}
-            onHitlPatch={(id) => void run(() => postAutomedicHitlPatch(id, 'patch'))}
-            onHitlIgnore={(id) => void run(() => postAutomedicHitlPatch(id, 'ignore'))}
-            loadError={
-              isError ? (error instanceof Error ? error.message : 'Could not load state') : null
-            }
-          />
+
+          {view === 'future' ? (
+            <FutureOpsDashboard />
+          ) : (
+            <StagePanel
+              incident={active}
+              workflows={data?.watchedWorkflows ?? []}
+              patientGraph={data?.patientGraph}
+              loading={isLoading && !data}
+              mutating={mutating}
+              onHitlPatch={(id) => void run(() => postAutomedicHitlPatch(id, 'patch'))}
+              onHitlIgnore={(id) => void run(() => postAutomedicHitlPatch(id, 'ignore'))}
+              loadError={
+                isError ? (error instanceof Error ? error.message : 'Could not load state') : null
+              }
+            />
+          )}
         </main>
       </div>
     </div>
