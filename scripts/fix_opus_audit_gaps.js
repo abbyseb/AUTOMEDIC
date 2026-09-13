@@ -127,11 +127,23 @@ async function fixVictim() {
     if (n.name === 'Validate Mapped Fields') {
       n.parameters.jsCode = validateCode;
     }
-    if (n.name === 'Is B2B?') {
-      let raw = JSON.stringify(n.parameters || {});
-      raw = raw.replace(/\$json\.is_c2c(?![A-Za-z0-9_])/g, '$json.is_b2b');
-      n.parameters = JSON.parse(raw);
-    }
+  if (n.name === 'Is B2B?') {
+    n.parameters = {
+      conditions: {
+        options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 3 },
+        conditions: [
+          {
+            id: 'c1',
+            leftValue: '={{ $json.is_b2b }}',
+            rightValue: true,
+            operator: { type: 'boolean', operation: 'true', singleValue: true },
+          },
+        ],
+        combinator: 'and',
+      },
+      options: {},
+    };
+  }
     if (n.name === 'Finalize Success') {
       n.parameters.jsCode = `return {
   json: {

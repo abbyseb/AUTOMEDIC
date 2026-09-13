@@ -112,11 +112,16 @@ function EscalateStage({
   onHitlIgnore?: (incidentId: string) => void
 }) {
   const ft = incident.diagnosis?.failureType ?? 'UNKNOWN'
-  const suggestions = incident.suggestions ?? []
+  const suggestions = (incident.suggestions ?? []).filter(
+    (s) => s.expectedField && s.replacementField && s.expectedField !== s.replacementField,
+  )
+  const actionableDiag =
+    !!incident.diagnosis?.sourceField &&
+    !!incident.diagnosis?.targetField &&
+    incident.diagnosis.sourceField !== incident.diagnosis.targetField
   const hitlReady =
     (ft === 'SEMANTIC_MISMATCH' || ft === 'SILENT_DRIFT') &&
-    (suggestions.length > 0 ||
-      (!!incident.diagnosis?.sourceField && !!incident.diagnosis?.targetField)) &&
+    (suggestions.length > 0 || actionableDiag) &&
     typeof onHitlPatch === 'function'
   const canIgnore =
     (ft === 'SEMANTIC_MISMATCH' || ft === 'SILENT_DRIFT') && typeof onHitlIgnore === 'function'
@@ -127,12 +132,12 @@ function EscalateStage({
     ft === 'SEMANTIC_MISMATCH' || ft === 'SILENT_DRIFT'
       ? suggestions.length > 0
         ? suggestions
-        : incident.diagnosis?.sourceField && incident.diagnosis?.targetField
+        : actionableDiag
           ? [
               {
                 mappedField: ft === 'SILENT_DRIFT' ? 'expression' : 'customerEmail',
-                expectedField: incident.diagnosis.sourceField,
-                replacementField: incident.diagnosis.targetField,
+                expectedField: incident.diagnosis!.sourceField!,
+                replacementField: incident.diagnosis!.targetField!,
               },
             ]
           : []

@@ -187,6 +187,8 @@ return [{ json: {
         sendQuery: true,
         queryParameters: {
           parameters: [
+            { name: 'workflowId', value: REV },
+            { name: 'status', value: 'success' },
             { name: 'includeData', value: 'true' },
             { name: 'limit', value: '15' },
           ],
